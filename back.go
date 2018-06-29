@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/eiblog/eiblog/setting"
 	"github.com/eiblog/utils/logd"
 	"github.com/eiblog/utils/mgo"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/jackysc/eiblog/setting"
 )
 
 // 是否登录

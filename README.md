@@ -1,4 +1,4 @@
-# EiBlog [![Build Status](https://travis-ci.org/eiblog/eiblog.svg?branch=v1.3.0)](https://travis-ci.org/eiblog/eiblog) [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md) [![Versuib](https://img.shields.io/github/tag/eiblog/eiblog.svg)](https://github.com/eiblog/eiblog/releases) 
+# EiBlog [![Build Status](https://travis-ci.org/eiblog/eiblog.svg?branch=v1.3.0)](https://travis-ci.org/eiblog/eiblog) [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md) [![Versuib](https://img.shields.io/github/tag/eiblog/eiblog.svg)](https://github.com/jackysc/eiblog/releases) 
 
 > 系统根据[https://imququ.com](https://imququ.com)一系列文章和方向进行搭建，期间获得了QuQu的很大帮助，在此表示感谢。
 
@@ -12,7 +12,7 @@
 
 * 自动更新证书：
   * 接入 [acme/autocert](https://github.com/golang/crypto/tree/master/acme/autocert)，在 TLS 层开启全自动更新证书，从此证书的更新再也不用惦记了，不过 Go 的 HTTPS 兼容性不够好（不想兼容），在如部分 IE 和 UC 之类的浏览器不能访问，请悉知。
-  * 如果你采用如 Nginx 代理，推荐使用 [acme.sh](https://github.com/Neilpang/acme.sh) 实现证书的自动部署。博主实现 aliyun dns 的自动验证方式，详见 [Makefile/gencert](https://github.com/eiblog/eiblog/blob/master/Makefile)。
+  * 如果你采用如 Nginx 代理，推荐使用 [acme.sh](https://github.com/Neilpang/acme.sh) 实现证书的自动部署。博主实现 aliyun dns 的自动验证方式，详见 [Makefile/gencert](https://github.com/jackysc/eiblog/blob/master/Makefile)。
 * `MongoDB`，博客采用 mongodb 作为存储数据库。
 * `Elasticsearch`，采用 `elasticsearch` 作为博客的站内搜索，尽管占用内存稍高。
 * `Disqus`，作为博客评论系统，国内大部分被墙，故实现两种评论方式。
@@ -36,7 +36,7 @@
 > `注`：图片1，图片2是博客界面，图片3是后台界面，图片4是性能展示。
 
 ### 极速体验
-1. 到 [这里](https://github.com/eiblog/eiblog/releases) 下载对应平台 `.tar.gz` 文件。
+1. 到 [这里](https://github.com/jackysc/eiblog/releases) 下载对应平台 `.tar.gz` 文件。
 
 2. 搭建 `MongoDB`（必须）和 `Elasticsearch`（可选）服务，正式部署需要。
 
@@ -50,7 +50,7 @@
 ```
 代表运行成功了。
 
-默认监听 `HTTP 9000` 端口，后台 `/admin/login`，默认账号密码均为 `deepzz`。更多详细请查阅 [安装部署](https://github.com/eiblog/eiblog/blob/master/docs/install.md) 文档。
+默认监听 `HTTP 9000` 端口，后台 `/admin/login`，默认账号密码均为 `deepzz`。更多详细请查阅 [安装部署](https://github.com/jackysc/eiblog/blob/master/docs/install.md) 文档。
 
 ### 特色功能
 
@@ -78,14 +78,14 @@
 
 ### 文档
 
-* [证书更新](https://github.com/eiblog/eiblog/blob/master/docs/autocert.md)
-* [安装部署](https://github.com/eiblog/eiblog/blob/master/docs/install.md)
-* [写作需知](https://github.com/eiblog/eiblog/blob/master/docs/writing.md)
-* [好玩的功能](https://github.com/eiblog/eiblog/blob/master/docs/amusing.md)
+* [证书更新](https://github.com/jackysc/eiblog/blob/master/docs/autocert.md)
+* [安装部署](https://github.com/jackysc/eiblog/blob/master/docs/install.md)
+* [写作需知](https://github.com/jackysc/eiblog/blob/master/docs/writing.md)
+* [好玩的功能](https://github.com/jackysc/eiblog/blob/master/docs/amusing.md)
 * [关于备份](https://github.com/eiblog/backup)
 
 ### 成功搭建者博客
 
 * [https://blog.netcj.com](https://blog.netcj.com) - Razeen's Blog
 
-如果你的博客使用`Eiblog`搭建，你可以在 [这里](https://github.com/eiblog/eiblog/issues/1) 提交网址。
+如果你的博客使用`Eiblog`搭建，你可以在 [这里](https://github.com/jackysc/eiblog/issues/1) 提交网址。

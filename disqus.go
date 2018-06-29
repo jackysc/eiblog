@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/deepzz0/logd"
-	"github.com/eiblog/eiblog/setting"
+	"github.com/jackysc/eiblog/setting"
 )
 
 var ErrDisqusConfig = errors.New("disqus config incorrect")

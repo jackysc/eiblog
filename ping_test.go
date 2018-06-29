@@ -4,7 +4,7 @@ package main
 import (
 	"testing"
 
-	"github.com/eiblog/eiblog/setting"
+	"github.com/jackysc/eiblog/setting"
 )
 
 func TestSuperFeedr(t *testing.T) {

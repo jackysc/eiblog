@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/eiblog/eiblog/setting"
 	"github.com/eiblog/utils/logd"
 	"github.com/gin-gonic/gin"
+	"github.com/jackysc/eiblog/setting"
 )
 
 func Filter() gin.HandlerFunc {

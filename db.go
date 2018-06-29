@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/eiblog/blackfriday"
-	"github.com/eiblog/eiblog/setting"
 	"github.com/eiblog/utils/logd"
 	"github.com/eiblog/utils/mgo"
+	"github.com/jackysc/eiblog/setting"
 )
 
 // 数据库及表名

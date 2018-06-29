@@ -50,14 +50,14 @@
 * 更改 app.yml 配置项，将大部分配置归在 general 常规配置下。注意，部署时请先更新 app.yml。
 * 静态文件采用动态渲染，即用户不再需要管理 view、static 目录。
 * 通过 acme.sh 使用双证书啦，可到 Makefile 查看相关信息。
-* 使用 autocert 自动生成证书功能，从此再也不用担心证书过期，移步 [证书更新](https://github.com/eiblog/eiblog/blob/master/docs/autocert.md)。
+* 使用 autocert 自动生成证书功能，从此再也不用担心证书过期，移步 [证书更新](https://github.com/jackysc/eiblog/blob/master/docs/autocert.md)。
 * 开启配置项 enablehttps， 将自动重定向 http 到 https 啦。
 * disqus.js 文件由配置指定，请看 app.yml 下的 disqus 相关配置。
 
 ## v1.2.0 (2017-06-14)
 * 更新评论功能，基础评论 0 回复也可评论了。
 * disqus.js 文件由博主自行更新。
-* 更正描述 README.md 描述错误 [#4f996](https://github.com/eiblog/eiblog/commit/4f9965b6bdefe087dd0805c1840afcb2752cd155)。
+* 更正描述 README.md 描述错误 [#4f996](https://github.com/jackysc/eiblog/commit/4f9965b6bdefe087dd0805c1840afcb2752cd155)。
 * docker 镜像版本化。
 
 ## v1.1.3 (2017-05-12)
