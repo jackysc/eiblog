@@ -7,6 +7,18 @@
   revision = "4562487a4bee9a7c272b72bfaeda4917d0a47ab9"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/bwmarrin/snowflake"
+  packages = ["."]
+  revision = "68117e6bbede4dd72d70c7a58d73348ead068509"
+
+[[projects]]
+  name = "github.com/cenkalti/backoff"
+  packages = ["."]
+  revision = "2ea60e5f094469f9e65adb9cd103795b73ae743e"
+  version = "v2.0.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
@@ -22,12 +34,6 @@
   name = "github.com/eiblog/blackfriday"
   packages = ["."]
   revision = "c0ec111761ae784fe31cc076f2fa0e2d2216d623"
-
-[[projects]]
-  name = "github.com/jackysc/eiblog"
-  packages = ["setting"]
-  revision = "52da8abcebf80534f87eb9773e7400eca6773846"
-  version = "v1.4.4"
 
 [[projects]]
   name = "github.com/eiblog/utils"
@@ -92,6 +98,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hailocab/go-hostpool"
+  packages = ["."]
+  revision = "e80d13ce29ede4452c43dea11e79b9bc8a15b478"
+
+[[projects]]
+  branch = "master"
   name = "github.com/manucorporat/sse"
   packages = ["."]
   revision = "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d"
@@ -101,6 +113,16 @@
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+
+[[projects]]
+  name = "github.com/opentracing/opentracing-go"
+  packages = [
+    ".",
+    "ext",
+    "log"
+  ]
+  revision = "1949ddbfd147afd4d964a9f00b24eb291e0e7c38"
+  version = "v1.0.2"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -136,6 +158,12 @@
   revision = "86672fcb3f950f35f2e675df2240550f2a50762f"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
+  version = "v1.0.5"
+
+[[projects]]
   name = "github.com/stretchr/testify"
   packages = ["assert"]
   revision = "69483b4bd14f5845b5a1e55bca19e954e827f1d0"
@@ -145,7 +173,9 @@
   name = "golang.org/x/crypto"
   packages = [
     "acme",
-    "acme/autocert"
+    "acme/autocert",
+    "pbkdf2",
+    "ssh/terminal"
   ]
   revision = "13931e22f9e72ea58bb73048bc752b48c6d4d4ac"
 
@@ -156,14 +186,34 @@
 
 [[projects]]
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "810d7000345868fc619eb81f46307107118f4ae1"
+
+[[projects]]
+  name = "gopkg.in/fatih/pool.v2"
+  packages = ["."]
+  revision = "010e0b745d12eaf8426c95f9c3924d81dd0b668f"
+  version = "v2.0.0"
 
 [[projects]]
   name = "gopkg.in/go-playground/validator.v8"
   packages = ["."]
   revision = "c193cecd124b5cc722d7ee5538e945bdb3348435"
   version = "v8.15.1"
+
+[[projects]]
+  name = "gopkg.in/gorethink/gorethink.v4"
+  packages = [
+    ".",
+    "encoding",
+    "ql2",
+    "types"
+  ]
+  revision = "eec03bd47cfc11965a9de004ff86add2a88e65b0"
+  version = "v4.0.0"
 
 [[projects]]
   branch = "v2"
@@ -196,6 +246,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "69368b4246af6f4cc3df4aa4c19ee48edcc44d3049e8c48a4253579b9be6da84"
+  inputs-digest = "846b21f858843f31008cb57d3a7fe20570e8e99fe5fe89a4f56ccbc406764b1b"
   solver-name = "gps-cdcl"
   solver-version = 1
