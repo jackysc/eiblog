@@ -24,10 +24,11 @@ type Config struct {
 	FeedrURL      string   // superfeedr url
 	HotWords      []string // 热搜词
 	PingRPCs      []string // ping rpc 地址
+	SeqNode       int64    //节点ID
 	General       struct {
 		PageNum    int    // 前端每页文章数量
 		PageSize   int    // 后台每页文章数量
-		StartID    int32  // 文章起始id
+		StartID    int64  // 文章起始id
 		DescPrefix string // 文章描述前缀
 		Identifier string // 文章截取标示
 		Length     int    // 文章自动截取预览长度
@@ -87,6 +88,15 @@ type Config struct {
 		BeiAn     string
 		BTitle    string
 		Copyright string
+	}
+	Database struct {
+		Host       string
+		Port       string
+		DbName     string
+		Username   string
+		Password   string
+		InitialCap int
+		MaxOpen    int
 	}
 }
 

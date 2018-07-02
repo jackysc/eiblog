@@ -103,7 +103,7 @@ func HandlePost(c *gin.Context) {
 	h := GetBack()
 	id, err := strconv.Atoi(c.Query("cid"))
 	if err == nil && id > 0 {
-		artc := QueryArticle(int32(id))
+		artc := QueryArticle(int64(id))
 		if artc != nil {
 			h["Title"] = "编辑文章 | " + Ei.BTitle
 			h["Edit"] = artc
@@ -132,7 +132,7 @@ func HandleDraftDelete(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
 		return
 	}
-	if err = RemoveArticle(int32(id)); err != nil {
+	if err = RemoveArticle(int64(id)); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "删除错误"})
 		return
 	}
@@ -194,7 +194,7 @@ func HandleSeries(c *gin.Context) {
 func HandleSerie(c *gin.Context) {
 	h := GetBack()
 	id, err := strconv.Atoi(c.Query("mid"))
-	if serie := QuerySerie(int32(id)); err == nil && id > 0 && serie != nil {
+	if serie := QuerySerie(int64(id)); err == nil && id > 0 && serie != nil {
 		h["Title"] = "编辑专题 | " + Ei.BTitle
 		h["Edit"] = serie
 	} else {

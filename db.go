@@ -10,10 +10,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bwmarrin/snowflake"
 	"github.com/eiblog/blackfriday"
 	"github.com/eiblog/utils/logd"
 	"github.com/eiblog/utils/mgo"
 	"github.com/jackysc/eiblog/setting"
+	r "gopkg.in/gorethink/gorethink.v4"
 )
 
 // 数据库及表名
@@ -54,26 +56,39 @@ const (
 
 // Global Account
 var (
-	Ei   *Account
-	lock sync.Mutex
+	Ei      *Account
+	lock    sync.Mutex
+	session *r.Session
+	node    *snowflake.Node
 )
 
 func init() {
-	// 数据库加索引
-	err := mgo.Index(DB, COLLECTION_ACCOUNT, []string{"username"})
+	var err error
+	node, err = snowflake.NewNode(setting.Conf.SeqNode)
+	session, err = r.Connect(r.ConnectOpts{
+		Address:    fmt.Sprintf("%s:%s", setting.Conf.Database.Host, setting.Conf.Database.Port),
+		Database:   setting.Conf.Database.DbName,
+		Username:   setting.Conf.Database.Username,
+		Password:   setting.Conf.Database.Password,
+		InitialCap: setting.Conf.Database.InitialCap,
+		MaxOpen:    setting.Conf.Database.MaxOpen,
+	})
 	if err != nil {
-		logd.Fatal(err)
+		panic(err)
 	}
-
-	err = mgo.Index(DB, COLLECTION_ARTICLE, []string{"id"})
-	if err != nil {
-		logd.Fatal(err)
-	}
-
-	err = mgo.Index(DB, COLLECTION_ARTICLE, []string{"slug"})
-	if err != nil {
-		logd.Fatal(err)
-	}
+	r.TableCreate(COLLECTION_ACCOUNT, r.TableCreateOpts{
+		PrimaryKey: "username",
+	}).Run(session)
+	r.TableCreate(COLLECTION_ARTICLE, r.TableCreateOpts{
+		PrimaryKey: "id",
+	}).Run(session)
+	r.Table(COLLECTION_ARTICLE).IndexCreate("slug").Run(session)
+	r.TableCreate(COUNTER_SERIE).Run(session)
+	r.TableCreate(COUNTER_ARTICLE).Run(session)
+	r.TableCreate(SERIES_MD).Run(session)
+	r.TableCreate(ARCHIVE_MD).Run(session)
+	r.TableCreate(ADD).Run(session)
+	r.TableCreate(DELETE).Run(session)
 	// 读取帐号信息
 	loadAccount()
 	// 获取文章数据
@@ -89,9 +104,8 @@ func init() {
 // 读取或初始化帐号信息
 func loadAccount() {
 	Ei = &Account{}
-	err := mgo.FindOne(DB, COLLECTION_ACCOUNT, mgo.M{"username": setting.Conf.Account.Username}, Ei)
-	// 初始化用户数据
-	if err == mgo.ErrNotFound {
+	cur, err := r.Table(COLLECTION_ACCOUNT).Filter(map[string]interface{}{"username": setting.Conf.Account.Username}).Run(session)
+	if err == r.ErrEmptyResult {
 		logd.Printf("Initializing account: %s\n", setting.Conf.Account.Username)
 		Ei = &Account{
 			Username:   setting.Conf.Account.Username,
@@ -106,9 +120,13 @@ func loadAccount() {
 		Ei.BeiAn = setting.Conf.Blogger.BeiAn
 		Ei.BTitle = setting.Conf.Blogger.BTitle
 		Ei.Copyright = setting.Conf.Blogger.Copyright
-		err = mgo.Insert(DB, COLLECTION_ACCOUNT, Ei)
+		r.Table(COLLECTION_ACCOUNT).Insert(Ei)
 		generateTopic()
 	} else if err != nil {
+		logd.Fatal(err)
+	}
+	err = cur.One(&Ei)
+	if err != nil {
 		logd.Fatal(err)
 	}
 	Ei.CH = make(chan string, 2)
@@ -117,7 +135,8 @@ func loadAccount() {
 }
 
 func loadArticles() {
-	err := mgo.FindAll(DB, COLLECTION_ARTICLE, mgo.M{"isdraft": false, "deletetime": mgo.M{"$eq": time.Time{}}}, &Ei.Articles)
+	cur, err := r.Table(COLLECTION_ARTICLE).Filter(map[string]interface{}{"isdraft": false, "deletetime": time.Time{}}).Run(session)
+	cur.All(&Ei.Articles)
 	if err != nil {
 		logd.Fatal(err)
 	}
@@ -201,7 +220,7 @@ func generateMarkdown() {
 // init account: generate blogroll and about page
 func generateTopic() {
 	about := &Article{
-		ID:         mgo.NextVal(DB, COUNTER_ARTICLE),
+		ID:         node.Generate().Int64(),
 		Author:     setting.Conf.Account.Username,
 		Title:      "关于",
 		Slug:       "about",
@@ -210,20 +229,19 @@ func generateTopic() {
 	}
 	// 推送到 disqus
 	go func() { ThreadCreate(about) }()
-
 	blogroll := &Article{
-		ID:         mgo.NextVal(DB, COUNTER_ARTICLE),
+		ID:         node.Generate().Int64(),
 		Author:     setting.Conf.Account.Username,
 		Title:      "友情链接",
 		Slug:       "blogroll",
 		CreateTime: time.Time{},
 		UpdateTime: time.Time{},
 	}
-	err := mgo.Insert(DB, COLLECTION_ARTICLE, blogroll)
+	_, err := r.Table(COLLECTION_ARTICLE).Insert(blogroll).Run(session)
 	if err != nil {
 		logd.Fatal(err)
 	}
-	err = mgo.Insert(DB, COLLECTION_ARTICLE, about)
+	_, err = r.Table(COLLECTION_ARTICLE).Insert(about).Run(session)
 	if err != nil {
 		logd.Fatal(err)
 	}
@@ -305,14 +323,22 @@ func GenerateExcerptAndRender(artc *Article) {
 
 // 读取草稿箱
 func LoadDraft() (artcs SortArticles, err error) {
-	err = mgo.FindAll(DB, COLLECTION_ARTICLE, mgo.M{"isdraft": true}, &artcs)
+	cur, err := r.Table(COLLECTION_ARTICLE).Filter(map[string]interface{}{"isdraft": true}).Run(session)
+	cur.All(&artcs)
+	if err != nil {
+		logd.Fatal(err)
+	}
 	sort.Sort(artcs)
 	return
 }
 
 // 读取回收箱
 func LoadTrash() (artcs SortArticles, err error) {
-	err = mgo.FindAll(DB, COLLECTION_ARTICLE, mgo.M{"deletetime": mgo.M{"$ne": time.Time{}}}, &artcs)
+	cur, err := r.Table(COLLECTION_ARTICLE).Ne(r.Row.Field("deletetime"), time.Time{}).Run(session)
+	cur.All(&artcs)
+	if err != nil {
+		logd.Fatal(err)
+	}
 	sort.Sort(artcs)
 	return
 }
@@ -426,7 +452,7 @@ func ReplaceArticle(oldArtc *Article, newArtc *Article) {
 func AddArticle(artc *Article) error {
 	// 分配ID, 占位至起始id
 	for {
-		if id := mgo.NextVal(DB, COUNTER_ARTICLE); id < setting.Conf.General.StartID {
+		if id := node.Generate().Int64(); id < setting.Conf.General.StartID {
 			continue
 		} else {
 			artc.ID = id
@@ -434,7 +460,7 @@ func AddArticle(artc *Article) error {
 		}
 	}
 
-	err := mgo.Insert(DB, COLLECTION_ARTICLE, artc)
+	_, err := r.Table(COLLECTION_ARTICLE).Insert(artc).Run(session)
 	if err != nil {
 		return err
 	}
@@ -453,7 +479,7 @@ func AddArticle(artc *Article) error {
 }
 
 // 删除文章，移入回收箱
-func DelArticles(ids ...int32) error {
+func DelArticles(ids ...int64) error {
 	lock.Lock()
 	defer lock.Unlock()
 	for _, id := range ids {
@@ -461,8 +487,7 @@ func DelArticles(ids ...int32) error {
 		DelFromLinkedList(artc)
 		Ei.Articles = append(Ei.Articles[:i], Ei.Articles[i+1:]...)
 		delete(Ei.MapArticles, artc.Slug)
-
-		err := UpdateArticle(mgo.M{"id": id}, mgo.M{"$set": mgo.M{"deletetime": time.Now()}})
+		_, err := r.Table(COLLECTION_ARTICLE).Filter(map[string]interface{}{"id": id}).Update(map[string]interface{}{"deletetime": time.Now()}).Run(session)
 		if err != nil {
 			return err
 		}
@@ -484,7 +509,7 @@ func DelFromLinkedList(artc *Article) {
 }
 
 // 将文章添加到链表
-func AddToLinkedList(id int32) {
+func AddToLinkedList(id int64) {
 	i, artc := GetArticle(id)
 	if i == 0 && Ei.Articles[i+1].ID >= setting.Conf.General.StartID {
 		artc.Next = Ei.Articles[i+1]
@@ -500,7 +525,7 @@ func AddToLinkedList(id int32) {
 }
 
 // 从缓存获取文章
-func GetArticle(id int32) (int, *Article) {
+func GetArticle(id int64) (int, *Article) {
 	for i, artc := range Ei.Articles {
 		if id == artc.ID {
 			return i, artc
@@ -514,44 +539,51 @@ func timer() {
 	delT := time.NewTicker(time.Duration(setting.Conf.General.Clean) * time.Hour)
 	for {
 		<-delT.C
-		mgo.Remove(DB, COLLECTION_ARTICLE, mgo.M{"deletetime": mgo.M{"$gt": time.Time{},
-			"$lt": time.Now().Add(time.Duration(setting.Conf.General.Trash) * time.Hour)}})
+		// mgo.Remove(DB, COLLECTION_ARTICLE, mgo.M{"deletetime": mgo.M{"$gt": time.Time{},
+		// 	"$lt": time.Now().Add(time.Duration(setting.Conf.General.Trash) * time.Hour)}})
+		r.Table(COLLECTION_ARTICLE).Filter(r.Row.Field("deletetime").Between(time.Time{},
+			time.Now().Add(time.Duration(setting.Conf.General.Trash)*time.Hour))).Delete().Run(session)
 	}
 }
 
 // 操作帐号字段
-func UpdateAccountField(M mgo.M) error {
-	return mgo.Update(DB, COLLECTION_ACCOUNT, mgo.M{"username": Ei.Username}, M)
+func UpdateAccountField(M map[string]interface{}) error {
+	_, err := r.Table(COLLECTION_ACCOUNT).Filter(map[string]interface{}{"username": Ei.Username}).Update(M).Run(session)
+	return err
 }
 
 // 删除草稿箱或回收箱，永久删除
-func RemoveArticle(id int32) error {
-	return mgo.Remove(DB, COLLECTION_ARTICLE, mgo.M{"id": id})
+func RemoveArticle(id int64) error {
+	_, err := r.Table(COLLECTION_ARTICLE).Filter(map[string]interface{}{"id": id}).Delete().Run(session)
+	return err
 }
 
 // 恢复删除文章到草稿箱
-func RecoverArticle(id int32) error {
-	return mgo.Update(DB, COLLECTION_ARTICLE, mgo.M{"id": id},
-		mgo.M{"$set": mgo.M{"deletetime": time.Time{}, "isdraft": true}})
+func RecoverArticle(id int64) error {
+	_, err := r.Table(COLLECTION_ARTICLE).Filter(map[string]interface{}{"id": id}).Update(map[string]interface{}{"deletetime": time.Time{}, "isdraft": true}).Run(session)
+	return err
 }
 
 // 更新文章
-func UpdateArticle(query, update interface{}) error {
-	return mgo.Update(DB, COLLECTION_ARTICLE, query, update)
+func UpdateArticle(id int64, update map[string]interface{}) error {
+	_, err := r.Table(COLLECTION_ARTICLE).Filter(map[string]interface{}{"id": id}).Update(update).Run(session)
+	return err
 }
 
 // 编辑文档
-func QueryArticle(id int32) *Article {
+func QueryArticle(id int64) *Article {
 	artc := &Article{}
-	if err := mgo.FindOne(DB, COLLECTION_ARTICLE, mgo.M{"id": id}, artc); err != nil {
+	cur, err := r.Table(COLLECTION_ARTICLE).Filter(map[string]interface{}{"id": id}).Run(session)
+	if err != nil {
 		return nil
 	}
+	cur.One(&artc)
 	return artc
 }
 
 // 添加专题
 func AddSerie(name, slug, desc string) error {
-	serie := &Serie{mgo.NextVal(DB, COUNTER_SERIE), name, slug, desc, time.Now(), nil}
+	serie := &Serie{node.Generate().Int64(), name, slug, desc, time.Now(), nil}
 	Ei.Series = append(Ei.Series, serie)
 	sort.Sort(Ei.Series)
 	Ei.CH <- SERIES_MD
@@ -566,7 +598,7 @@ func UpdateSerie(serie *Serie) error {
 }
 
 // 删除专题
-func DelSerie(id int32) error {
+func DelSerie(id int64) error {
 	for i, serie := range Ei.Series {
 		if id == serie.ID {
 			if len(serie.Articles) > 0 {
@@ -585,7 +617,7 @@ func DelSerie(id int32) error {
 }
 
 // 查找专题
-func QuerySerie(id int32) *Serie {
+func QuerySerie(id int64) *Serie {
 	for _, serie := range Ei.Series {
 		if serie.ID == id {
 			return serie

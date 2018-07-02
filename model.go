@@ -46,17 +46,17 @@ type Blogger struct {
 	ArchivesSay string
 	Archives    SortArchives
 	// 忽略存储，前端界面全部缓存
-	PageSeries   string                  `bson:"-"` // 专题页面
-	PageArchives string                  `bson:"-"` // 归档页面
-	Tags         map[string]SortArticles `bson:"-"` // 标签 name->tag
-	Articles     SortArticles            `bson:"-"` // 所有文章
-	MapArticles  map[string]*Article     `bson:"-"` // url->Article
-	CH           chan string             `bson:"-"` // channel
+	PageSeries   string                  `json:"-"` // 专题页面
+	PageArchives string                  `json:"-"` // 归档页面
+	Tags         map[string]SortArticles `json:"-"` // 标签 name->tag
+	Articles     SortArticles            `json:"-"` // 所有文章
+	MapArticles  map[string]*Article     `json:"-"` // url->Article
+	CH           chan string             `json:"-"` // channel
 }
 
 type Serie struct {
 	// 自增id
-	ID int32
+	ID int64
 	// 名称unique
 	Name string
 	// 缩略名
@@ -66,7 +66,7 @@ type Serie struct {
 	// 创建时间
 	CreateTime time.Time
 	// 文章
-	Articles SortArticles `bson:"-"`
+	Articles SortArticles `json:"-"`
 }
 
 type SortSeries []*Serie
@@ -77,7 +77,7 @@ func (s SortSeries) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 type Archive struct {
 	Time     time.Time
-	Articles SortArticles `bson:"-"`
+	Articles SortArticles `json:"-"`
 }
 
 type SortArchives []*Archive
@@ -88,7 +88,7 @@ func (s SortArchives) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 type Article struct {
 	// 自增id
-	ID int32
+	ID int64
 	// 作者名
 	Author string
 	// 标题
@@ -100,7 +100,7 @@ type Article struct {
 	// markdown文档
 	Content string
 	// 归属专题
-	SerieID int32
+	SerieID int64
 	// tagname
 	Tags []string
 	// 是否是草稿
@@ -112,17 +112,17 @@ type Article struct {
 	// 开始删除时间
 	DeleteTime time.Time
 	// 上篇文章
-	Prev *Article `bson:"-"`
+	Prev *Article `json:"-"`
 	// 下篇文章
-	Next *Article `bson:"-"`
+	Next *Article `json:"-"`
 	// Header
-	Header string `bson:"-"`
+	Header string `json:"-"`
 	// 预览信息
-	Excerpt string `bson:"-"`
+	Excerpt string `json:"-"`
 	// 一句话描述，文章第一句
-	Desc string `bson:"-"`
+	Desc string `json:"-"`
 	// disqus thread
-	Thread string `bson:"-"`
+	Thread string `json:"-"`
 }
 
 type SortArticles []*Article

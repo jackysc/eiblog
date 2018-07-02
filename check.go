@@ -38,9 +38,9 @@ func CheckDate(date string) time.Time {
 }
 
 // 检查 id
-func CheckSerieID(sid string) int32 {
+func CheckSerieID(sid string) int64 {
 	if id, err := strconv.Atoi(sid); err == nil {
-		return int32(id)
+		return int64(id)
 	}
 	return 0
 }

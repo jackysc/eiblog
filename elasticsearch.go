@@ -132,7 +132,7 @@ func ElasticIndex(artc *Article) error {
 }
 
 // 删除索引
-func ElasticDelIndex(ids []int32) error {
+func ElasticDelIndex(ids []int64) error {
 	if es == nil {
 		return ErrUninitializedES
 	}
@@ -214,7 +214,7 @@ func CreateIndexAndMappings(index, typ string, mappings []byte) (err error) {
 }
 
 // 创建或更新索引
-func IndexOrUpdateDocument(index, typ string, id int32, doc []byte) (err error) {
+func IndexOrUpdateDocument(index, typ string, id int64, doc []byte) (err error) {
 	req, err := http.NewRequest("PUT", es.ParseURL("/%s/%s/%d", index, typ, id), bytes.NewReader(doc))
 	if err != nil {
 		return err

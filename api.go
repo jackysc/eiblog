@@ -142,14 +142,14 @@ func apiPassword(c *gin.Context) {
 
 // 删除文章，软删除：移入到回收箱
 func apiPostDelete(c *gin.Context) {
-	var ids []int32
+	var ids []int64
 	for _, v := range c.PostFormArray("cid[]") {
 		i, err := strconv.Atoi(v)
-		if err != nil || int32(i) < setting.Conf.General.StartID {
+		if err != nil || int64(i) < setting.Conf.General.StartID {
 			responseNotice(c, NOTICE_NOTICE, "参数错误", "")
 			return
 		}
-		ids = append(ids, int32(i))
+		ids = append(ids, int64(i))
 	}
 	err := DelArticles(ids...)
 	if err != nil {
@@ -245,7 +245,7 @@ func apiPostAdd(c *gin.Context) {
 	}
 
 	// 旧文章
-	artc.ID = int32(cid)
+	artc.ID = int64(cid)
 	_, a := GetArticle(artc.ID)
 	if a != nil {
 		artc.IsDraft = false
@@ -285,7 +285,7 @@ func apiSerieDelete(c *gin.Context) {
 			responseNotice(c, NOTICE_NOTICE, err.Error(), "")
 			return
 		}
-		err = DelSerie(int32(id))
+		err = DelSerie(int64(id))
 		if err != nil {
 			logd.Error(err)
 			responseNotice(c, NOTICE_NOTICE, err.Error(), "")
@@ -306,7 +306,7 @@ func apiSerieAdd(c *gin.Context) {
 	}
 	mid, err := strconv.Atoi(c.PostForm("mid"))
 	if err == nil && mid > 0 {
-		serie := QuerySerie(int32(mid))
+		serie := QuerySerie(int64(mid))
 		if serie == nil {
 			responseNotice(c, NOTICE_NOTICE, "专题不存在", "")
 			return
@@ -314,7 +314,7 @@ func apiSerieAdd(c *gin.Context) {
 		serie.Name = name
 		serie.Slug = slug
 		serie.Desc = desc
-		serie.ID = int32(mid)
+		serie.ID = int64(mid)
 		err = UpdateSerie(serie)
 		if err != nil {
 			logd.Error(err)
@@ -346,7 +346,7 @@ func apiDraftDelete(c *gin.Context) {
 			responseNotice(c, NOTICE_NOTICE, "参数错误", "")
 			return
 		}
-		err = RemoveArticle(int32(i))
+		err = RemoveArticle(int64(i))
 		if err != nil {
 			responseNotice(c, NOTICE_NOTICE, err.Error(), "")
 			return
@@ -363,7 +363,7 @@ func apiTrashDelete(c *gin.Context) {
 			responseNotice(c, NOTICE_NOTICE, "参数错误", "")
 			return
 		}
-		err = RemoveArticle(int32(i))
+		err = RemoveArticle(int64(i))
 		if err != nil {
 			responseNotice(c, NOTICE_NOTICE, err.Error(), "")
 			return
@@ -381,7 +381,7 @@ func apiTrashRecover(c *gin.Context) {
 			return
 
 		}
-		err = RecoverArticle(int32(i))
+		err = RecoverArticle(int64(i))
 		if err != nil {
 			responseNotice(c, NOTICE_NOTICE, err.Error(), "")
 			return
