@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/eiblog/utils/logd"
-	"github.com/eiblog/utils/mgo"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/jackysc/eiblog/setting"
@@ -74,7 +73,7 @@ func HandleLoginPost(c *gin.Context) {
 	session.Save()
 	Ei.LoginIP = c.ClientIP()
 	Ei.LoginTime = time.Now()
-	UpdateAccountField(mgo.M{"$set": mgo.M{"loginip": Ei.LoginIP, "logintime": Ei.LoginTime}})
+	UpdateAccountField(map[string]interface{}{"loginip": Ei.LoginIP, "logintime": Ei.LoginTime})
 	c.Redirect(http.StatusFound, "/admin/profile")
 }
 

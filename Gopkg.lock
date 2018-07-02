@@ -39,7 +39,6 @@
   name = "github.com/eiblog/utils"
   packages = [
     "logd",
-    "mgo",
     "tmpl",
     "uuid"
   ]
@@ -216,18 +215,6 @@
   version = "v4.0.0"
 
 [[projects]]
-  branch = "v2"
-  name = "gopkg.in/mgo.v2"
-  packages = [
-    ".",
-    "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram"
-  ]
-  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
-
-[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
@@ -246,6 +233,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "846b21f858843f31008cb57d3a7fe20570e8e99fe5fe89a4f56ccbc406764b1b"
+  inputs-digest = "17cfada60e5b3f7a235ffa98ed238d249b1eb7ea9755e23b328cfd0c7b6b3ab4"
   solver-name = "gps-cdcl"
   solver-version = 1
