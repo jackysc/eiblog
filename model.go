@@ -46,12 +46,12 @@ type Blogger struct {
 	ArchivesSay string
 	Archives    SortArchives
 	// 忽略存储，前端界面全部缓存
-	PageSeries   string                  `json:"-"` // 专题页面
-	PageArchives string                  `json:"-"` // 归档页面
-	Tags         map[string]SortArticles `json:"-"` // 标签 name->tag
-	Articles     SortArticles            `json:"-"` // 所有文章
-	MapArticles  map[string]*Article     `json:"-"` // url->Article
-	CH           chan string             `json:"-"` // channel
+	PageSeries   string                  `gorethink:"-"` // 专题页面
+	PageArchives string                  `gorethink:"-"` // 归档页面
+	Tags         map[string]SortArticles `gorethink:"-"` // 标签 name->tag
+	Articles     SortArticles            `gorethink:"-"` // 所有文章
+	MapArticles  map[string]*Article     `gorethink:"-"` // url->Article
+	CH           chan string             `gorethink:"-"` // channel
 }
 
 type Serie struct {
@@ -66,7 +66,7 @@ type Serie struct {
 	// 创建时间
 	CreateTime time.Time
 	// 文章
-	Articles SortArticles `json:"-"`
+	Articles SortArticles `gorethink:"-"`
 }
 
 type SortSeries []*Serie
@@ -77,7 +77,7 @@ func (s SortSeries) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 type Archive struct {
 	Time     time.Time
-	Articles SortArticles `json:"-"`
+	Articles SortArticles `gorethink:"-"`
 }
 
 type SortArchives []*Archive
@@ -112,17 +112,17 @@ type Article struct {
 	// 开始删除时间
 	DeleteTime time.Time
 	// 上篇文章
-	Prev *Article `json:"-"`
+	Prev *Article `gorethink:"-"`
 	// 下篇文章
-	Next *Article `json:"-"`
+	Next *Article `gorethink:"-"`
 	// Header
-	Header string `json:"-"`
+	Header string `gorethink:"-"`
 	// 预览信息
-	Excerpt string `json:"-"`
+	Excerpt string `gorethink:"-"`
 	// 一句话描述，文章第一句
-	Desc string `json:"-"`
+	Desc string `gorethink:"-"`
 	// disqus thread
-	Thread string `json:"-"`
+	Thread string `gorethink:"-"`
 }
 
 type SortArticles []*Article

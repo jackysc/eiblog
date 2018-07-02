@@ -13,7 +13,6 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/eiblog/blackfriday"
 	"github.com/eiblog/utils/logd"
-	"github.com/eiblog/utils/mgo"
 	"github.com/jackysc/eiblog/setting"
 	r "gopkg.in/gorethink/gorethink.v4"
 )
@@ -539,8 +538,6 @@ func timer() {
 	delT := time.NewTicker(time.Duration(setting.Conf.General.Clean) * time.Hour)
 	for {
 		<-delT.C
-		// mgo.Remove(DB, COLLECTION_ARTICLE, mgo.M{"deletetime": mgo.M{"$gt": time.Time{},
-		// 	"$lt": time.Now().Add(time.Duration(setting.Conf.General.Trash) * time.Hour)}})
 		r.Table(COLLECTION_ARTICLE).Filter(r.Row.Field("deletetime").Between(time.Time{},
 			time.Now().Add(time.Duration(setting.Conf.General.Trash)*time.Hour))).Delete().Run(session)
 	}
@@ -565,7 +562,7 @@ func RecoverArticle(id int64) error {
 }
 
 // 更新文章
-func UpdateArticle(id int64, update map[string]interface{}) error {
+func UpdateArticle(id int64, update *Article) error {
 	_, err := r.Table(COLLECTION_ARTICLE).Filter(map[string]interface{}{"id": id}).Update(update).Run(session)
 	return err
 }
@@ -587,14 +584,15 @@ func AddSerie(name, slug, desc string) error {
 	Ei.Series = append(Ei.Series, serie)
 	sort.Sort(Ei.Series)
 	Ei.CH <- SERIES_MD
-	return UpdateAccountField(mgo.M{"$addToSet": mgo.M{"blogger.series": serie}})
+	return UpdateAccountField(map[string]interface{}{"blogger": map[string]interface{}{"series": serie}})
 }
 
 // 更新专题
 func UpdateSerie(serie *Serie) error {
 	Ei.CH <- SERIES_MD
-	return mgo.Update(DB, COLLECTION_ACCOUNT, mgo.M{"username": Ei.Username,
-		"blogger.series.id": serie.ID}, mgo.M{"$set": mgo.M{"blogger.series.$": serie}})
+	_, err := r.Table(COLLECTION_ACCOUNT).Filter(map[string]interface{}{"username": Ei.Username,
+		"blogger": map[string]interface{}{"series": map[string]interface{}{"id": serie.ID}}}).Update(map[string]interface{}{"blogger": map[string]interface{}{"series": serie}}).Run(session)
+	return err
 }
 
 // 删除专题
@@ -604,7 +602,7 @@ func DelSerie(id int64) error {
 			if len(serie.Articles) > 0 {
 				return fmt.Errorf("请删除该专题下的所有文章")
 			}
-			err := UpdateAccountField(mgo.M{"$pull": mgo.M{"blogger.series": mgo.M{"id": id}}})
+			_, err := r.Table(COLLECTION_ACCOUNT).Filter(map[string]interface{}{"username": Ei.Username, "blogger": map[string]interface{}{"series": map[string]interface{}{"id": id}}}).Delete().Run(session)
 			if err != nil {
 				return err
 			}
@@ -628,28 +626,28 @@ func QuerySerie(id int64) *Serie {
 
 // 后台分页
 func PageListBack(se int, kw string, draft, del bool, p, n int) (max int, artcs []*Article) {
-	M := mgo.M{}
+	T := r.Table(COLLECTION_ARTICLE)
 	if draft {
-		M["isdraft"] = true
+		T = T.Filter(map[string]interface{}{"isdraft": true})
 	} else if del {
-		M["deletetime"] = mgo.M{"$ne": time.Time{}}
+		T = T.Ne(r.Row.Field("deletetime"), time.Time{})
 	} else {
-		M["isdraft"] = false
-		M["deletetime"] = mgo.M{"$eq": time.Time{}}
+		T = T.Filter(map[string]interface{}{"isdraft": false}).Filter(map[string]interface{}{"deletetime": time.Time{}})
 		if se > 0 {
-			M["serieid"] = se
+			T = T.Filter(map[string]interface{}{"serieid": se})
 		}
 		if kw != "" {
-			M["title"] = mgo.M{"$regex": kw, "$options": "$i"}
+			T = T.Filter(r.Row.Field("title").Match(kw))
 		}
 	}
-	ms, c := mgo.Connect(DB, COLLECTION_ARTICLE)
-	defer ms.Close()
-	err := c.Find(M).Select(mgo.M{"content": 0}).Sort("-createtime").Limit(n).Skip((p - 1) * n).All(&artcs)
+	cur, err := T.Filter(map[string]interface{}{"content": 0}).OrderBy(r.Desc("createtime")).Limit(n).Skip((p - 1) * n).Run(session)
 	if err != nil {
 		logd.Error(err)
 	}
-	count, err := c.Find(M).Count()
+	cur.All(&artcs)
+	cur, err = T.Count().Run(session)
+	var count int
+	cur.One(&count)
 	if err != nil {
 		logd.Error(err)
 	}

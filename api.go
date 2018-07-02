@@ -256,7 +256,7 @@ func apiPostAdd(c *gin.Context) {
 		artc.UpdateTime = time.Now()
 	}
 	// 数据库更新
-	err = UpdateArticle(mgo.M{"id": artc.ID}, artc)
+	err = UpdateArticle(artc.ID, artc)
 	if err != nil {
 		logd.Error(err)
 		return
