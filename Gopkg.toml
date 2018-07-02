@@ -33,9 +33,6 @@
   branch = "master"
   name = "github.com/eiblog/blackfriday"
 
-[[constraint]]
-  name = "github.com/jackysc/eiblog"
-  version = "1.4.4"
 
 [[constraint]]
   name = "github.com/gin-gonic/gin"
